@@ -1,0 +1,114 @@
+Testons en implémentant une simple calculatrice, nous allons concevoir en Java, une calculatrice qui effectue les opérations arithmétiques de base : addition, multiplication, soustraction et division des entiers. L'utilisateur saisira l'expression à calculer et le programme lui affichera le résultat.
+class CalculatriceLexer extends Lexer
+Options {
+ K=1 ; 
+filter = true ;
+}
+ INT
+     : (‘0'..'9')+  // un entier est constitué d'un ou plusieurs chiffres décimaux
+    ;
+PLUS : ‘+' ;
+MINUS : ‘-‘ ;
+PRODUCT : ‘x' ;
+DIV : ‘/' ;
+WS      // cette règle permet de reconnaître les espacements 
+   :  
+    ( ' ' 
+    | '\t' 
+    | '\r' '\n' { newline(); } 
+    | '\n'      { newline(); }
+    ) 
+{ $setType(Token.SKIP); } // ne pas considérer ces espacements comme tokens
+  ;
+  options
+{
+       exportVocab=CALCO;
+       buildAST=false;
+      k=2;  
+}
+{      
+public int resultat; // cette variable stockera le résultat de l'opération
+}
+expr
+       : addExpr|subExpr|multExpr|divExpr // l'expression à analyser sera soit une
+                                         // addition, une soustraction, une multiplication ou une division
+       ;
+addExpr
+    {int n,m;}
+       : (a:INT PLUS b:INT)
+         { n=Integer.parseInt(a.getText()); // transformation de la chaine de caractères en entier
+           m=Integer.parseInt(b.getText());
+           resultat=sum(n,m);
+           }
+       ;
+subExpr 
+       {int n,m;}
+       : (a:INT MINUS b:INT)
+         { n=Integer.parseInt(a.getText());
+           m=Integer.parseInt(b.getText());
+           resultat=substract(n,m);
+           }
+       ;
+multExpr 
+       {int n,m;}
+       : (a:INT PRODUCT b:INT)
+         { n=Integer.parseInt(a.getText());
+           m=Integer.parseInt(b.getText());
+           resultat=multiply(n,m);
+          }
+       ;      
+divExpr 
+       {int n,m;}
+       : (a:INT DIVIDE b:INT)
+         { n=Integer.parseInt(a.getText());
+           m=Integer.parseInt(b.getText());
+           resultat=divide(n,m);
+           }
+       ;
+       <?xml version="1.0" encoding="UTF-8"?>
+
+ <!-- ############################# VARIABLES ##############################-->
+       
+       <!-- set global properties for this build -->
+       <property name="src.dir" value="src" />
+       <property name="grammar.dir" value="${src.dir}/main/ant" />
+       <property name="lib.dir" value="lib" />
+       <property name="parser.project" value="${src.dir}/main/java/analyseur" />
+ 
+       <!-- ############################# TASKS ##############################-->
+       <taskdef name="antlrtask"     
+             classname="org.apache.tools.ant.taskdefs.optional.ANTLR">
+             <classpath>
+                    <pathelement path="${compile_classpath}"/> 
+             </classpath>
+       </taskdef>
+ 
+       <!-- ############################ TARGETS #############################-->
+      <target name="antlrProject">
+             <!-- Calculator grammar /-->
+           <antlrtask target="${grammar.dir}/grammar.g"  
+            outputdirectory="${parser.project}" />
+      </target>
+ 
+    <target name="regenAntlrProject" depends="deleteAntlrProject, antlrProject" />
+             
+     <target name="deleteAntlrProject">
+             <delete>
+                    <fileset dir="${parser.project}" />
+             </delete>
+     </target>
+</project>
+int compute(String expression){
+       int result =0;
+       CalculatriceLexer lexer = new  CalculatriceLexer(new StringReader(expression)); 
+       CalculatriceParser parser = new CalculatriceParser(lexer);
+        try {
+                    parser.expr();
+                                    
+                        result = parser.resultat;
+                       }   catch(Exception e) 
+                       {
+                             System.out.println("Erreur de saisie"); 
+                       }
+                    
+     return result;
